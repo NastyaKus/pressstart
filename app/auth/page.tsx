@@ -44,7 +44,7 @@ export default function AuthPage() {
           if (nick && data.session.user) {
             await supabase
               .from("profiles")
-              .update({ username: nick })
+              .update({ display_name: nick })
               .eq("id", data.session.user.id);
           }
           router.push("/library");

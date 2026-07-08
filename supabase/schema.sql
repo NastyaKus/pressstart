@@ -6,10 +6,15 @@
 -- ── Профили пользователей ───────────────────────────────────
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
-  username text,
+  username text not null,            -- уникальный @handle
+  display_name text,                 -- ник для показа
+  bio text,
   avatar_url text,
   created_at timestamptz not null default now()
 );
+
+create unique index if not exists profiles_username_lower_key
+  on public.profiles (lower(username));
 
 alter table public.profiles enable row level security;
 
@@ -61,9 +66,10 @@ create table if not exists public.game_entries (
 
 alter table public.game_entries enable row level security;
 
-drop policy if exists "Свои записи: чтение" on public.game_entries;
-create policy "Свои записи: чтение"
-  on public.game_entries for select using (auth.uid() = user_id);
+-- Библиотеки публично читаемы (для чужих профилей); запись — owner-only ниже.
+drop policy if exists "Публичное чтение записей" on public.game_entries;
+create policy "Публичное чтение записей"
+  on public.game_entries for select using (true);
 
 drop policy if exists "Свои записи: добавление" on public.game_entries;
 create policy "Свои записи: добавление"
@@ -87,9 +93,24 @@ language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  base text;
+  handle text;
 begin
-  insert into public.profiles (id, username)
-  values (new.id, split_part(new.email, '@', 1))
+  base := lower(regexp_replace(
+    coalesce(nullif(new.raw_user_meta_data->>'username', ''),
+             split_part(new.email, '@', 1), 'user'),
+    '[^a-zA-Z0-9_]', '', 'g'));
+  if length(base) < 3 then base := 'user'; end if;
+  handle := left(base, 16) || '_' || left(replace(new.id::text, '-', ''), 4);
+
+  insert into public.profiles (id, username, display_name)
+  values (
+    new.id,
+    handle,
+    coalesce(nullif(new.raw_user_meta_data->>'username', ''),
+             split_part(new.email, '@', 1))
+  )
   on conflict (id) do nothing;
   return new;
 end;
@@ -113,3 +134,36 @@ drop trigger if exists game_entries_touch on public.game_entries;
 create trigger game_entries_touch
   before update on public.game_entries
   for each row execute function public.touch_updated_at();
+
+-- ── Storage: bucket для аватарок ────────────────────────────
+insert into storage.buckets (id, name, public)
+  values ('avatars', 'avatars', true)
+  on conflict (id) do nothing;
+
+drop policy if exists "Аватарки: публичное чтение" on storage.objects;
+create policy "Аватарки: публичное чтение"
+  on storage.objects for select using (bucket_id = 'avatars');
+
+drop policy if exists "Аватарки: загрузка своих" on storage.objects;
+create policy "Аватарки: загрузка своих"
+  on storage.objects for insert to authenticated
+  with check (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "Аватарки: замена своих" on storage.objects;
+create policy "Аватарки: замена своих"
+  on storage.objects for update to authenticated
+  using (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "Аватарки: удаление своих" on storage.objects;
+create policy "Аватарки: удаление своих"
+  on storage.objects for delete to authenticated
+  using (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );

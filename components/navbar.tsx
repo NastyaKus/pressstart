@@ -1,30 +1,47 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Library, LogOut, Search, Sparkles } from "lucide-react";
+import {
+  Library,
+  LogOut,
+  Search,
+  Sparkles,
+  Users,
+  Settings,
+  UserIcon,
+} from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import { Logo } from "./logo";
+import { Avatar } from "./avatar";
 import { useUser } from "@/lib/use-user";
+import { useProfile } from "@/lib/use-profile";
 import { createClient } from "@/lib/supabase/client";
 
 const links = [
   { href: "/", label: "Главная", icon: Sparkles },
   { href: "/discover", label: "Каталог", icon: Search },
   { href: "/library", label: "Библиотека", icon: Library },
+  { href: "/users", label: "Люди", icon: Users },
 ];
 
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useUser();
+  const { profile } = useProfile();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   async function signOut() {
     const supabase = createClient();
     if (supabase) await supabase.auth.signOut();
+    setMenuOpen(false);
     router.push("/");
     router.refresh();
   }
+
+  const displayName = profile?.display_name || profile?.username || "Профиль";
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 glass">
@@ -58,19 +75,53 @@ export function Navbar() {
         <div className="ml-auto flex items-center gap-2">
           <ThemeToggle />
           {user ? (
-            <div className="flex items-center gap-2">
-              <span className="hidden max-w-[160px] truncate font-mono text-xs text-accent md:block">
-                {(user.user_metadata?.username as string) ||
-                  user.email?.split("@")[0]}
-              </span>
+            <div className="relative">
               <button
-                onClick={signOut}
-                className="btn-ghost h-9 px-3"
-                aria-label="Выйти"
+                onClick={() => setMenuOpen((o) => !o)}
+                className="flex items-center gap-2 rounded-full border border-border/70 bg-surface/60 py-1 pl-1 pr-2.5 transition hover:border-accent/60"
               >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden md:inline">Выйти</span>
+                <Avatar
+                  src={profile?.avatar_url}
+                  name={displayName}
+                  size={28}
+                />
+                <span className="hidden max-w-[120px] truncate text-sm font-medium md:block">
+                  {displayName}
+                </span>
               </button>
+
+              {menuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setMenuOpen(false)}
+                  />
+                  <div className="absolute right-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-xl glass-strong py-1 shadow-xl">
+                    {profile && (
+                      <Link
+                        href={`/u/${profile.username}`}
+                        onClick={() => setMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm transition hover:bg-surface-2"
+                      >
+                        <UserIcon className="h-4 w-4 text-muted" /> Мой профиль
+                      </Link>
+                    )}
+                    <Link
+                      href="/settings"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm transition hover:bg-surface-2"
+                    >
+                      <Settings className="h-4 w-4 text-muted" /> Настройки
+                    </Link>
+                    <button
+                      onClick={signOut}
+                      className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-red-500 transition hover:bg-surface-2"
+                    >
+                      <LogOut className="h-4 w-4" /> Выйти
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             <Link href="/auth" className="btn-primary h-9">

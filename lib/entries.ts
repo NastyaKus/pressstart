@@ -44,9 +44,14 @@ export type EntryInput = {
 export async function fetchEntries(): Promise<GameEntry[]> {
   const supabase = createClient();
   if (!supabase) return [];
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
   const { data, error } = await supabase
     .from("game_entries")
     .select("*")
+    .eq("user_id", user.id)
     .order("added_at", { ascending: false });
   if (error) throw error;
   return (data ?? []) as GameEntry[];
@@ -56,9 +61,14 @@ export async function fetchEntries(): Promise<GameEntry[]> {
 export async function fetchEntry(rawgId: number): Promise<GameEntry | null> {
   const supabase = createClient();
   if (!supabase) return null;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
   const { data, error } = await supabase
     .from("game_entries")
     .select("*")
+    .eq("user_id", user.id)
     .eq("rawg_id", rawgId)
     .maybeSingle();
   if (error) throw error;
