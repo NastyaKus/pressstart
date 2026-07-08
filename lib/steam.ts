@@ -1,7 +1,11 @@
 /**
- * Серверный слой Steam Web API.
- * Требует STEAM_API_KEY (https://steamcommunity.com/dev/apikey).
- * Профиль игрока должен быть публичным, иначе список игр придёт пустым.
+ * Импорт библиотеки Steam через официальный Steam Web API (GetOwnedGames).
+ *
+ * ВАЖНО: нужен ОДИН серверный ключ STEAM_API_KEY на весь сайт (ставит владелец
+ * один раз). После этого ЛЮБОЙ пользователь импортит свой профиль без ключей —
+ * просто вставив ссылку. Анонимного доступа к чужой библиотеке у Steam больше нет.
+ *
+ * Требование к пользователю: публичный профиль (Приватность → «Мои игры»).
  */
 
 const STEAM_KEY = process.env.STEAM_API_KEY ?? "";
@@ -10,11 +14,11 @@ export const hasSteamKey = Boolean(STEAM_KEY);
 export type SteamGame = {
   appid: number;
   name: string;
-  hours: number; // округлённые часы (playtime_forever / 60)
+  hours: number; // часы = playtime_forever / 60
   cover: string; // обложка со Steam CDN
 };
 
-/** Достаём steamid64 или vanity-имя из того, что ввёл пользователь. */
+/** Достаём steamid64 или vanity-имя из ввода пользователя. */
 function parseInput(raw: string): { steamid?: string; vanity?: string } {
   const input = raw.trim();
 
@@ -45,10 +49,13 @@ async function resolveSteamId(raw: string): Promise<string | null> {
   return data?.response?.success === 1 ? data.response.steamid : null;
 }
 
-/** Возвращает игры пользователя со временем в часах, отсортированные по убыванию. */
+/** Игры пользователя со временем в часах, отсортированные по убыванию. */
 export async function getOwnedGames(raw: string): Promise<SteamGame[]> {
   const steamid = await resolveSteamId(raw);
-  if (!steamid) throw new Error("Не удалось определить Steam‑профиль");
+  if (!steamid)
+    throw new Error(
+      "Не удалось найти профиль. Проверь ссылку или SteamID."
+    );
 
   const url = new URL(
     "https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/"

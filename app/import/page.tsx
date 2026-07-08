@@ -314,12 +314,13 @@ export default function ImportPage() {
       )}
 
       <a
-        href="https://steamcommunity.com/dev/apikey"
+        href="https://steamcommunity.com/my/edit/settings"
         target="_blank"
         rel="noreferrer"
         className="flex items-center justify-center gap-1.5 text-xs text-muted transition hover:text-accent"
       >
-        Как это работает и что нужно для настройки <ExternalLink className="h-3 w-3" />
+        Ключи не нужны · открыть настройки приватности Steam{" "}
+        <ExternalLink className="h-3 w-3" />
       </a>
     </div>
   );

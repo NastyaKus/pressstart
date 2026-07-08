@@ -6,7 +6,7 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         error:
-          "Импорт из Steam не настроен: добавьте STEAM_API_KEY в переменные окружения.",
+          "Импорт из Steam ещё не включён владельцем сайта (нужен один STEAM_API_KEY). Скоро заработает.",
       },
       { status: 400 }
     );
