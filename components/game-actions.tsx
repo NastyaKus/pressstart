@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Check, Loader2, Trash2, Plus, LogIn, Heart, Clock } from "lucide-react";
 import { RatingCriteria } from "./rating-criteria";
 import { DEFAULT_RATINGS, type Ratings } from "@/lib/criteria";
@@ -32,6 +33,7 @@ type GameInfo = {
 };
 
 export function GameActions({ game }: { game: GameInfo }) {
+  const router = useRouter();
   const { user, loading: userLoading } = useUser();
   const [loaded, setLoaded] = useState(false);
   const [inLibrary, setInLibrary] = useState(false);
@@ -83,6 +85,7 @@ export function GameActions({ game }: { game: GameInfo }) {
   async function handleSave() {
     setSaving(true);
     setError(null);
+    const wasInLibrary = inLibrary;
     try {
       const parsedHours = hours.trim() === "" ? null : Number(hours);
       await saveEntry({
@@ -100,6 +103,12 @@ export function GameActions({ game }: { game: GameInfo }) {
         ...ratings,
       });
       setInLibrary(true);
+      // После первого добавления игры — сразу в библиотеку.
+      if (!wasInLibrary) {
+        router.push("/library");
+        router.refresh();
+        return;
+      }
       setSavedFlash(true);
       setTimeout(() => setSavedFlash(false), 2000);
     } catch (err) {

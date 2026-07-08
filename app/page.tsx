@@ -34,7 +34,6 @@ export default async function HomePage() {
             <span className="accent-gradient animate-gradient bg-clip-text text-transparent">
               Start
             </span>
-            <span className="animate-blink ml-1 font-mono text-accent">▮</span>
           </h1>
 
           <p className="mx-auto mt-6 max-w-xl text-balance text-base text-muted sm:text-lg">

@@ -33,11 +33,11 @@ export type EntryInput = {
   hours_played: number | null;
   platforms_played: string[];
   favorite: boolean;
-  atmosphere: number;
-  story: number;
-  gameplay: number;
-  graphics: number;
-  sound: number;
+  atmosphere: number | null;
+  story: number | null;
+  gameplay: number | null;
+  graphics: number | null;
+  sound: number | null;
 };
 
 /** Все записи текущего пользователя. */

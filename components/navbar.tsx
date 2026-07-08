@@ -59,8 +59,9 @@ export function Navbar() {
           <ThemeToggle />
           {user ? (
             <div className="flex items-center gap-2">
-              <span className="hidden max-w-[160px] truncate font-mono text-xs text-muted md:block">
-                {user.email}
+              <span className="hidden max-w-[160px] truncate font-mono text-xs text-accent md:block">
+                {(user.user_metadata?.username as string) ||
+                  user.email?.split("@")[0]}
               </span>
               <button
                 onClick={signOut}

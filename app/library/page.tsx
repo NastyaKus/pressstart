@@ -11,6 +11,7 @@ import {
   Search,
   Heart,
   ArrowUpDown,
+  Download,
 } from "lucide-react";
 import { useUser } from "@/lib/use-user";
 import { fetchEntries, type GameEntry, type GameStatus } from "@/lib/entries";
@@ -142,11 +143,16 @@ export default function LibraryPage() {
 
   return (
     <div className="space-y-8">
-      <div className="animate-fade-up">
-        <h1 className="font-display text-3xl font-bold tracking-tight">
-          Моя библиотека
-        </h1>
-        <p className="mt-1 text-muted">Все твои игры и оценки в одном месте</p>
+      <div className="flex flex-wrap items-end justify-between gap-3 animate-fade-up">
+        <div>
+          <h1 className="font-display text-3xl font-bold tracking-tight">
+            Моя библиотека
+          </h1>
+          <p className="mt-1 text-muted">Все твои игры и оценки в одном месте</p>
+        </div>
+        <Link href="/import" className="btn-outline">
+          <Download className="h-4 w-4" /> Импорт из Steam
+        </Link>
       </div>
 
       {/* Статистика */}

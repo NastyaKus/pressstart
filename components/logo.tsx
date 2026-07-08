@@ -15,7 +15,6 @@ export function Logo({ size = 34, withText = true, className = "" }: LogoProps) 
           <span className="bg-gradient-to-r from-accent to-accent-2 bg-clip-text text-transparent">
             start
           </span>
-          <span className="animate-blink ml-0.5 font-mono text-accent">▮</span>
         </span>
       )}
     </span>

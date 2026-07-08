@@ -63,15 +63,30 @@ async function rawgFetch(path: string, params: Record<string, string> = {}) {
   return res.json();
 }
 
+/** Дата в формате YYYY-MM-DD со сдвигом на N дней от сегодня. */
+function isoDate(offsetDays = 0): string {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  return d.toISOString().slice(0, 10);
+}
+
 export async function getPopularGames(pageSize = 24): Promise<Game[]> {
   if (!hasRawgKey) return FALLBACK_GAMES.slice(0, pageSize);
   try {
+    // Актуальное: популярные релизы за последние ~18 месяцев (без выхода в будущее).
     const data = await rawgFetch("/games", {
+      dates: `${isoDate(-540)},${isoDate(0)}`,
       ordering: "-added",
       page_size: String(pageSize),
-      metacritic: "80,100",
     });
-    return (data.results as RawgGame[]).map(normalize);
+    const results = (data.results as RawgGame[]) ?? [];
+    if (results.length > 0) return results.map(normalize);
+    // Запасной вариант, если по датам пусто.
+    const fallback = await rawgFetch("/games", {
+      ordering: "-released",
+      page_size: String(pageSize),
+    });
+    return ((fallback.results as RawgGame[]) ?? []).map(normalize);
   } catch {
     return FALLBACK_GAMES.slice(0, pageSize);
   }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Mail, Lock } from "lucide-react";
+import { Loader2, Mail, Lock, Gamepad2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { LogoMark } from "@/components/logo";
@@ -11,6 +11,7 @@ export default function AuthPage() {
   const router = useRouter();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,10 +31,22 @@ export default function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const nick = username.trim();
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { username: nick } },
+        });
         if (error) throw error;
         const { data } = await supabase.auth.getSession();
         if (data.session) {
+          // Сохраняем ник в профиль (профиль уже создан триггером).
+          if (nick && data.session.user) {
+            await supabase
+              .from("profiles")
+              .update({ username: nick })
+              .eq("id", data.session.user.id);
+          }
           router.push("/library");
           router.refresh();
         } else {
@@ -80,6 +93,21 @@ export default function AuthPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {mode === "signup" && (
+            <div className="relative">
+              <Gamepad2 className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+              <input
+                type="text"
+                required
+                maxLength={24}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Твой ник"
+                className="input pl-10"
+                autoComplete="username"
+              />
+            </div>
+          )}
           <div className="relative">
             <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
