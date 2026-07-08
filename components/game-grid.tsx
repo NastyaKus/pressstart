@@ -5,20 +5,31 @@ export function GameGrid({
   games,
   scores,
   statuses,
+  favorites,
+  hours,
 }: {
   games: Game[];
   scores?: Record<number, number>;
   statuses?: Record<number, string>;
+  favorites?: Record<number, boolean>;
+  hours?: Record<number, number | null>;
 }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-      {games.map((game) => (
-        <GameCard
+      {games.map((game, i) => (
+        <div
           key={game.id}
-          game={game}
-          score={scores?.[game.id]}
-          status={statuses?.[game.id]}
-        />
+          className="animate-fade-up"
+          style={{ animationDelay: `${Math.min(i, 12) * 45}ms` }}
+        >
+          <GameCard
+            game={game}
+            score={scores?.[game.id]}
+            status={statuses?.[game.id]}
+            favorite={favorites?.[game.id]}
+            hours={hours?.[game.id]}
+          />
+        </div>
       ))}
     </div>
   );

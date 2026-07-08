@@ -145,6 +145,7 @@ export default async function GamePage({
               cover_url: game.backgroundImage,
               released: game.released,
               genres: game.genres,
+              platforms: game.platforms,
             }}
           />
         </div>

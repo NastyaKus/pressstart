@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ImageOff } from "lucide-react";
+import { ImageOff, Heart, Clock } from "lucide-react";
 import type { Game } from "@/lib/rawg";
 import { ScoreBadge } from "./score-badge";
 
@@ -11,6 +11,8 @@ type Props = {
   >;
   score?: number | null;
   status?: string | null;
+  favorite?: boolean;
+  hours?: number | null;
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -20,7 +22,7 @@ const STATUS_LABELS: Record<string, string> = {
   dropped: "Брошено",
 };
 
-export function GameCard({ game, score, status }: Props) {
+export function GameCard({ game, score, status, favorite, hours }: Props) {
   const year = game.released ? game.released.slice(0, 4) : null;
 
   return (
@@ -54,6 +56,11 @@ export function GameCard({ game, score, status }: Props) {
             {STATUS_LABELS[status]}
           </span>
         )}
+        {favorite && (
+          <span className="absolute bottom-2 left-2 grid h-7 w-7 place-items-center rounded-full bg-black/55 backdrop-blur">
+            <Heart className="h-3.5 w-3.5 fill-red-500 text-red-500" />
+          </span>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-3.5">
@@ -62,6 +69,12 @@ export function GameCard({ game, score, status }: Props) {
         </h3>
         <div className="mt-auto flex flex-wrap items-center gap-1.5">
           {year && <span className="chip">{year}</span>}
+          {typeof hours === "number" && hours > 0 && (
+            <span className="chip gap-1">
+              <Clock className="h-3 w-3" />
+              {hours % 1 === 0 ? hours : hours.toFixed(1)} ч
+            </span>
+          )}
           {game.genres.slice(0, 2).map((g) => (
             <span key={g} className="chip">
               {g}

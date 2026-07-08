@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Check, Loader2, Trash2, Plus, LogIn } from "lucide-react";
+import { Check, Loader2, Trash2, Plus, LogIn, Heart, Clock } from "lucide-react";
 import { RatingCriteria } from "./rating-criteria";
 import { DEFAULT_RATINGS, type Ratings } from "@/lib/criteria";
+import { platformOptions, platformIcon } from "@/lib/platforms";
 import { useUser } from "@/lib/use-user";
 import {
   fetchEntry,
@@ -27,6 +28,7 @@ type GameInfo = {
   cover_url: string | null;
   released: string | null;
   genres: string[];
+  platforms: string[];
 };
 
 export function GameActions({ game }: { game: GameInfo }) {
@@ -36,9 +38,14 @@ export function GameActions({ game }: { game: GameInfo }) {
   const [status, setStatus] = useState<GameStatus>("completed");
   const [ratings, setRatings] = useState<Ratings>(DEFAULT_RATINGS);
   const [review, setReview] = useState("");
+  const [hours, setHours] = useState("");
+  const [platforms, setPlatforms] = useState<string[]>([]);
+  const [favorite, setFavorite] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const options = platformOptions(game.platforms);
 
   useEffect(() => {
     if (!user) {
@@ -51,6 +58,9 @@ export function GameActions({ game }: { game: GameInfo }) {
           setInLibrary(true);
           setStatus(entry.status);
           setReview(entry.review ?? "");
+          setHours(entry.hours_played != null ? String(entry.hours_played) : "");
+          setPlatforms(entry.platforms_played ?? []);
+          setFavorite(Boolean(entry.favorite));
           setRatings({
             atmosphere: entry.atmosphere ?? 7,
             story: entry.story ?? 7,
@@ -64,10 +74,17 @@ export function GameActions({ game }: { game: GameInfo }) {
       .finally(() => setLoaded(true));
   }, [user, game.id]);
 
+  function togglePlatform(name: string) {
+    setPlatforms((prev) =>
+      prev.includes(name) ? prev.filter((p) => p !== name) : [...prev, name]
+    );
+  }
+
   async function handleSave() {
     setSaving(true);
     setError(null);
     try {
+      const parsedHours = hours.trim() === "" ? null : Number(hours);
       await saveEntry({
         rawg_id: game.id,
         name: game.name,
@@ -76,6 +93,10 @@ export function GameActions({ game }: { game: GameInfo }) {
         genres: game.genres,
         status,
         review,
+        hours_played:
+          parsedHours != null && !Number.isNaN(parsedHours) ? parsedHours : null,
+        platforms_played: platforms,
+        favorite,
         ...ratings,
       });
       setInLibrary(true);
@@ -96,6 +117,9 @@ export function GameActions({ game }: { game: GameInfo }) {
       setInLibrary(false);
       setRatings(DEFAULT_RATINGS);
       setReview("");
+      setHours("");
+      setPlatforms([]);
+      setFavorite(false);
       setStatus("completed");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Не удалось удалить");
@@ -129,15 +153,26 @@ export function GameActions({ game }: { game: GameInfo }) {
 
   return (
     <div className="card space-y-6 p-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <h2 className="font-display text-lg font-bold">
           {inLibrary ? "Моя оценка" : "Оценить игру"}
         </h2>
-        {inLibrary && (
-          <span className="flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-400">
-            <Check className="h-3.5 w-3.5" /> В библиотеке
-          </span>
-        )}
+        <button
+          onClick={() => setFavorite((f) => !f)}
+          aria-label="В избранное"
+          className={`grid h-9 w-9 place-items-center rounded-xl border transition ${
+            favorite
+              ? "border-transparent bg-red-500/15 text-red-500"
+              : "border-border bg-surface text-muted hover:text-fg"
+          }`}
+        >
+          <Heart
+            key={String(favorite)}
+            className={`h-[18px] w-[18px] transition-transform ${
+              favorite ? "scale-110 fill-red-500 heart-pop" : ""
+            }`}
+          />
+        </button>
       </div>
 
       {/* Статус */}
@@ -157,6 +192,48 @@ export function GameActions({ game }: { game: GameInfo }) {
               {s.label}
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* Часы наиграно */}
+      <div>
+        <p className="mb-2 flex items-center gap-1.5 text-sm font-medium">
+          <Clock className="h-4 w-4 text-muted" /> Часов наиграно
+        </p>
+        <input
+          type="number"
+          inputMode="decimal"
+          min={0}
+          step="0.5"
+          value={hours}
+          onChange={(e) => setHours(e.target.value)}
+          placeholder="Например, 42"
+          className="input"
+        />
+      </div>
+
+      {/* Платформы прохождения (мультивыбор) */}
+      <div>
+        <p className="mb-2 text-sm font-medium">На чём играл</p>
+        <div className="flex flex-wrap gap-2">
+          {options.map((name) => {
+            const Icon = platformIcon(name);
+            const active = platforms.includes(name);
+            return (
+              <button
+                key={name}
+                onClick={() => togglePlatform(name)}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                  active
+                    ? "bg-accent text-accent-fg"
+                    : "bg-surface-2 text-muted hover:text-fg"
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {name}
+              </button>
+            );
+          })}
         </div>
       </div>
 

@@ -37,6 +37,9 @@ create table if not exists public.game_entries (
   status text not null default 'completed'
     check (status in ('completed', 'playing', 'backlog', 'dropped')),
   review text,
+  hours_played numeric check (hours_played >= 0),
+  platforms_played text[] not null default '{}',
+  favorite boolean not null default false,
   -- Критерии оценки (1–10):
   atmosphere smallint check (atmosphere between 1 and 10),
   story smallint check (story between 1 and 10),
