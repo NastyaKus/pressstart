@@ -92,6 +92,76 @@ export async function getPopularGames(pageSize = 24): Promise<Game[]> {
   }
 }
 
+// Основные жанры RAWG (стабильные слаги) для фильтра каталога.
+export const GENRES: { slug: string; label: string }[] = [
+  { slug: "action", label: "Экшен" },
+  { slug: "role-playing-games-rpg", label: "RPG" },
+  { slug: "shooter", label: "Шутер" },
+  { slug: "adventure", label: "Приключения" },
+  { slug: "strategy", label: "Стратегия" },
+  { slug: "indie", label: "Инди" },
+  { slug: "puzzle", label: "Головоломки" },
+  { slug: "platformer", label: "Платформер" },
+  { slug: "racing", label: "Гонки" },
+  { slug: "sports", label: "Спорт" },
+  { slug: "fighting", label: "Файтинг" },
+  { slug: "simulation", label: "Симулятор" },
+  { slug: "massively-multiplayer", label: "MMO" },
+];
+
+// Родительские платформы RAWG (parent_platforms id).
+export const PLATFORMS: { id: string; label: string }[] = [
+  { id: "1", label: "PC" },
+  { id: "2", label: "PlayStation" },
+  { id: "3", label: "Xbox" },
+  { id: "7", label: "Nintendo" },
+];
+
+export const ORDERINGS: { value: string; label: string }[] = [
+  { value: "-added", label: "Популярные" },
+  { value: "-released", label: "Новинки" },
+  { value: "-rating", label: "По рейтингу" },
+  { value: "name", label: "По алфавиту" },
+];
+
+export type GameFilters = {
+  q?: string;
+  genre?: string;
+  platform?: string;
+  ordering?: string;
+  pageSize?: number;
+};
+
+/** Каталог с фильтрами (поиск + жанр + платформа + сортировка). */
+export async function getGames(filters: GameFilters): Promise<Game[]> {
+  const { q = "", genre = "", platform = "", ordering = "-added", pageSize = 24 } = filters;
+
+  if (!hasRawgKey) {
+    const lower = q.trim().toLowerCase();
+    return FALLBACK_GAMES.filter(
+      (g) => !lower || g.name.toLowerCase().includes(lower)
+    );
+  }
+
+  const params: Record<string, string> = {
+    page_size: String(pageSize),
+    ordering,
+  };
+  if (q.trim()) {
+    params.search = q.trim();
+    params.search_precise = "true";
+  }
+  if (genre) params.genres = genre;
+  if (platform) params.parent_platforms = platform;
+
+  try {
+    const data = await rawgFetch("/games", params);
+    return (data.results as RawgGame[]).map(normalize);
+  } catch {
+    return [];
+  }
+}
+
 export async function searchGames(query: string, pageSize = 24): Promise<Game[]> {
   const q = query.trim();
   if (!hasRawgKey) {
