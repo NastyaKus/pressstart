@@ -1,17 +1,19 @@
 import Link from "next/link";
-import { Gamepad2 } from "lucide-react";
+import { LogoMark } from "@/components/logo";
 
 export default function NotFound() {
   return (
     <div className="grid min-h-[60vh] place-items-center text-center">
-      <div>
-        <span className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-accent text-accent-fg">
-          <Gamepad2 className="h-7 w-7" />
-        </span>
-        <h1 className="font-display text-5xl font-bold">404</h1>
-        <p className="mt-2 text-muted">Такой страницы нет. Game over.</p>
-        <Link href="/" className="btn-primary mt-6">
-          На главную
+      <div className="animate-fade-up">
+        <div className="mb-5 flex justify-center">
+          <LogoMark size={56} />
+        </div>
+        <h1 className="font-display text-6xl font-extrabold text-glow">404</h1>
+        <p className="mt-2 font-mono text-sm text-muted">
+          game over · такой страницы нет
+        </p>
+        <Link href="/" className="btn-primary mt-7">
+          Continue → на главную
         </Link>
       </div>
     </div>

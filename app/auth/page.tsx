@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Gamepad2, Loader2, Mail, Lock } from "lucide-react";
+import { Loader2, Mail, Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { LogoMark } from "@/components/logo";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -58,8 +59,8 @@ export default function AuthPage() {
     <div className="mx-auto max-w-md py-8">
       <div className="card animate-fade-up p-8">
         <div className="mb-6 text-center">
-          <span className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-accent text-accent-fg">
-            <Gamepad2 className="h-6 w-6" />
+          <span className="mx-auto mb-4 flex justify-center">
+            <LogoMark size={52} />
           </span>
           <h1 className="font-display text-2xl font-bold">
             {mode === "login" ? "С возвращением" : "Создать аккаунт"}

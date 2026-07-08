@@ -28,7 +28,7 @@ export function GameCard({ game, score, status, favorite, hours }: Props) {
   return (
     <Link
       href={`/game/${game.id}`}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-[0_16px_40px_-16px_rgb(var(--accent)/0.45)]"
+      className="group relative flex flex-col overflow-hidden rounded-2xl glass transition-all duration-300 hover:-translate-y-1.5 hover:border-accent/60 hover:shadow-[0_20px_50px_-18px_rgb(var(--accent)/0.6)]"
     >
       <div className="relative aspect-[16/9] w-full overflow-hidden bg-surface-2">
         {game.backgroundImage ? (

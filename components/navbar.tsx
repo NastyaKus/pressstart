@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Gamepad2, Library, LogOut, Search, Sparkles } from "lucide-react";
+import { Library, LogOut, Search, Sparkles } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
+import { Logo } from "./logo";
 import { useUser } from "@/lib/use-user";
 import { createClient } from "@/lib/supabase/client";
 
@@ -26,15 +27,10 @@ export function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-bg/80 backdrop-blur-lg">
+    <header className="sticky top-0 z-40 border-b border-border/60 glass">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-2 px-4 sm:px-6">
-        <Link href="/" className="mr-2 flex items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-accent text-accent-fg">
-            <Gamepad2 className="h-5 w-5" />
-          </span>
-          <span className="font-display text-lg font-bold tracking-tight">
-            press<span className="text-accent">start</span>
-          </span>
+        <Link href="/" className="mr-2 transition hover:opacity-90">
+          <Logo />
         </Link>
 
         <nav className="ml-2 hidden items-center gap-1 sm:flex">
@@ -45,14 +41,15 @@ export function Navbar() {
               <Link
                 key={href}
                 href={href}
-                className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition ${
-                  active
-                    ? "bg-surface-2 text-fg"
-                    : "text-muted hover:text-fg"
+                className={`relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                  active ? "text-accent" : "text-muted hover:text-fg"
                 }`}
               >
                 <Icon className="h-4 w-4" />
                 {label}
+                {active && (
+                  <span className="absolute inset-x-2 -bottom-[1px] h-0.5 rounded-full accent-gradient shadow-[0_0_10px_rgb(var(--accent)/0.8)]" />
+                )}
               </Link>
             );
           })}
@@ -62,7 +59,7 @@ export function Navbar() {
           <ThemeToggle />
           {user ? (
             <div className="flex items-center gap-2">
-              <span className="hidden max-w-[160px] truncate text-sm text-muted md:block">
+              <span className="hidden max-w-[160px] truncate font-mono text-xs text-muted md:block">
                 {user.email}
               </span>
               <button
@@ -83,7 +80,7 @@ export function Navbar() {
       </div>
 
       {/* Мобильная нижняя навигация */}
-      <nav className="flex items-center justify-around border-t border-border bg-bg px-2 py-1 sm:hidden">
+      <nav className="flex items-center justify-around border-t border-border/60 px-2 py-1 sm:hidden">
         {links.map(({ href, label, icon: Icon }) => {
           const active =
             href === "/" ? pathname === "/" : pathname.startsWith(href);
