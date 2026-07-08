@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2, LogIn, Camera, Check, AtSign } from "lucide-react";
+import { Loader2, LogIn, Camera, Check, AtSign, ImagePlus } from "lucide-react";
 import { useUser } from "@/lib/use-user";
 import { Avatar } from "@/components/avatar";
 import {
   fetchMyProfile,
   updateProfile,
   uploadAvatar,
+  uploadProfileImage,
   isUsernameAvailable,
   isValidUsername,
   type Profile,
@@ -26,8 +27,10 @@ export default function SettingsPage() {
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
 
   const [uploading, setUploading] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -48,6 +51,7 @@ export default function SettingsPage() {
           setUsername(p.username);
           setBio(p.bio ?? "");
           setAvatarUrl(p.avatar_url);
+          setBannerUrl(p.banner_url);
         }
       })
       .catch(() => {})
@@ -97,6 +101,25 @@ export default function SettingsPage() {
     }
   }
 
+  async function onPickBanner(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Баннер больше 5 МБ — выбери поменьше.");
+      return;
+    }
+    setUploadingBanner(true);
+    setError(null);
+    try {
+      const url = await uploadProfileImage(file, "banner");
+      setBannerUrl(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Не удалось загрузить");
+    } finally {
+      setUploadingBanner(false);
+    }
+  }
+
   async function handleSave() {
     const handle = username.trim().toLowerCase();
     if (!isValidUsername(handle)) {
@@ -115,7 +138,23 @@ export default function SettingsPage() {
         username: handle,
         bio: bio.trim(),
         avatar_url: avatarUrl ?? undefined,
+        banner_url: bannerUrl ?? undefined,
       });
+      // Локально фиксируем новые значения (чтобы ссылки вели на новый @хэндл).
+      setProfile((p) =>
+        p
+          ? {
+              ...p,
+              username: handle,
+              display_name: displayName.trim() || handle,
+              bio: bio.trim(),
+              avatar_url: avatarUrl,
+              banner_url: bannerUrl,
+            }
+          : p
+      );
+      // Навбар мгновенно перечитывает профиль.
+      window.dispatchEvent(new Event("pressstart:profile"));
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       router.refresh();
@@ -175,6 +214,38 @@ export default function SettingsPage() {
       </div>
 
       <div className="card space-y-6 p-6">
+        {/* Баннер */}
+        <div>
+          <label className="mb-2 block text-sm font-medium">Баннер профиля</label>
+          <div className="relative h-28 overflow-hidden rounded-xl border border-border/70">
+            {bannerUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={bannerUrl}
+                alt="Баннер"
+                className="h-full w-full scale-105 object-cover blur-[1px]"
+              />
+            ) : (
+              <div className="h-full w-full accent-gradient" />
+            )}
+            <label className="absolute bottom-2 right-2 flex cursor-pointer items-center gap-1.5 rounded-lg glass-strong px-3 py-1.5 text-xs font-medium">
+              {uploadingBanner ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <ImagePlus className="h-3.5 w-3.5" />
+              )}
+              Сменить фон
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={onPickBanner}
+                disabled={uploadingBanner}
+              />
+            </label>
+          </div>
+        </div>
+
         {/* Аватарка */}
         <div className="flex items-center gap-4">
           <div className="relative">

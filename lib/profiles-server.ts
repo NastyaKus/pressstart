@@ -10,7 +10,7 @@ export async function getProfileByUsername(
   if (!supabase) return null;
   const { data } = await supabase
     .from("profiles")
-    .select("id, username, display_name, bio, avatar_url, created_at")
+    .select("id, username, display_name, bio, avatar_url, banner_url, created_at")
     .ilike("username", username)
     .maybeSingle();
   return (data as Profile) ?? null;

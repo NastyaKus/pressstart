@@ -67,9 +67,23 @@ export default async function ProfilePage({
     <div className="space-y-8">
       {/* Шапка профиля */}
       <div className="card animate-fade-up overflow-hidden">
-        <div className="h-28 accent-gradient opacity-90" />
+        <div className="relative h-32 overflow-hidden">
+          {profile.banner_url ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={profile.banner_url}
+                alt=""
+                className="h-full w-full scale-105 object-cover blur-[2px]"
+              />
+              <div className="absolute inset-0 bg-black/25" />
+            </>
+          ) : (
+            <div className="h-full w-full accent-gradient" />
+          )}
+        </div>
         <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-end">
-          <div className="-mt-16 shrink-0">
+          <div className="relative z-10 -mt-16 shrink-0">
             <Avatar
               src={profile.avatar_url}
               name={name}

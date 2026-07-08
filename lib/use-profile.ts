@@ -26,7 +26,13 @@ export function useProfile() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(() => reload());
-    return () => subscription.unsubscribe();
+
+    // Мгновенное обновление после сохранения профиля в настройках.
+    window.addEventListener("pressstart:profile", reload);
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("pressstart:profile", reload);
+    };
   }, [reload]);
 
   return { profile, loading, reload };

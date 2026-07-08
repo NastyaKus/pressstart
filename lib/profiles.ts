@@ -8,10 +8,12 @@ export type Profile = {
   display_name: string | null;
   bio: string | null;
   avatar_url: string | null;
+  banner_url: string | null;
   created_at: string;
 };
 
-const PROFILE_COLS = "id, username, display_name, bio, avatar_url, created_at";
+const PROFILE_COLS =
+  "id, username, display_name, bio, avatar_url, banner_url, created_at";
 
 /** Профиль по @юзернейму (регистронезависимо). */
 export async function fetchProfileByUsername(
@@ -64,6 +66,7 @@ export type ProfileUpdate = {
   username?: string;
   bio?: string;
   avatar_url?: string;
+  banner_url?: string;
 };
 
 /** Обновить свой профиль. */
@@ -85,8 +88,11 @@ export async function updateProfile(patch: ProfileUpdate): Promise<void> {
   }
 }
 
-/** Загрузить аватарку в Storage и вернуть публичный URL. */
-export async function uploadAvatar(file: File): Promise<string> {
+/** Загрузить картинку профиля (аватар или баннер) в Storage → публичный URL. */
+export async function uploadProfileImage(
+  file: File,
+  kind: "avatar" | "banner"
+): Promise<string> {
   const supabase = createClient();
   if (!supabase) throw new Error("Supabase не настроен");
   const {
@@ -95,7 +101,7 @@ export async function uploadAvatar(file: File): Promise<string> {
   if (!user) throw new Error("Нужно войти в аккаунт");
 
   const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-  const path = `${user.id}/avatar_${Date.now()}.${ext}`;
+  const path = `${user.id}/${kind}_${Date.now()}.${ext}`;
 
   const { error } = await supabase.storage
     .from("avatars")
@@ -104,6 +110,11 @@ export async function uploadAvatar(file: File): Promise<string> {
 
   const { data } = supabase.storage.from("avatars").getPublicUrl(path);
   return data.publicUrl;
+}
+
+/** Обёртка для аватарки. */
+export function uploadAvatar(file: File): Promise<string> {
+  return uploadProfileImage(file, "avatar");
 }
 
 /** Валидность @юзернейма: 3–20 символов, латиница/цифры/подчёркивание. */

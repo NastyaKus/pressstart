@@ -10,6 +10,7 @@ create table if not exists public.profiles (
   display_name text,                 -- ник для показа
   bio text,
   avatar_url text,
+  banner_url text,
   created_at timestamptz not null default now()
 );
 
