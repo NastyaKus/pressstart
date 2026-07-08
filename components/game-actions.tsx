@@ -15,6 +15,7 @@ import {
   type GameStatus,
 } from "@/lib/entries";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { useToast } from "./toast";
 
 const STATUSES: { key: GameStatus; label: string }[] = [
   { key: "completed", label: "Пройдено" },
@@ -34,6 +35,7 @@ type GameInfo = {
 
 export function GameActions({ game }: { game: GameInfo }) {
   const router = useRouter();
+  const { toast } = useToast();
   const { user, loading: userLoading } = useUser();
   const [loaded, setLoaded] = useState(false);
   const [inLibrary, setInLibrary] = useState(false);
@@ -105,14 +107,18 @@ export function GameActions({ game }: { game: GameInfo }) {
       setInLibrary(true);
       // После первого добавления игры — сразу в библиотеку.
       if (!wasInLibrary) {
+        toast(`«${game.name}» в библиотеке`);
         router.push("/library");
         router.refresh();
         return;
       }
+      toast("Изменения сохранены");
       setSavedFlash(true);
       setTimeout(() => setSavedFlash(false), 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Не удалось сохранить");
+      const msg = err instanceof Error ? err.message : "Не удалось сохранить";
+      setError(msg);
+      toast(msg, "error");
     } finally {
       setSaving(false);
     }
@@ -130,8 +136,11 @@ export function GameActions({ game }: { game: GameInfo }) {
       setPlatforms([]);
       setFavorite(false);
       setStatus("completed");
+      toast("Удалено из библиотеки");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Не удалось удалить");
+      const msg = err instanceof Error ? err.message : "Не удалось удалить";
+      setError(msg);
+      toast(msg, "error");
     } finally {
       setSaving(false);
     }

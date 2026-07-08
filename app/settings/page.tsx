@@ -16,9 +16,11 @@ import {
   type Profile,
 } from "@/lib/profiles";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { useToast } from "@/components/toast";
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const { user, loading: userLoading } = useUser();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -155,11 +157,14 @@ export default function SettingsPage() {
       );
       // Навбар мгновенно перечитывает профиль.
       window.dispatchEvent(new Event("pressstart:profile"));
+      toast("Профиль сохранён");
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Не удалось сохранить");
+      const msg = err instanceof Error ? err.message : "Не удалось сохранить";
+      setError(msg);
+      toast(msg, "error");
     } finally {
       setSaving(false);
     }

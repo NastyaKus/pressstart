@@ -11,6 +11,7 @@ import {
   Users,
   Settings,
   UserIcon,
+  Trophy,
 } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import { Logo } from "./logo";
@@ -24,6 +25,7 @@ const links = [
   { href: "/discover", label: "Каталог", icon: Search },
   { href: "/library", label: "Библиотека", icon: Library },
   { href: "/users", label: "Люди", icon: Users },
+  { href: "/leaderboard", label: "Топ", icon: Trophy },
 ];
 
 export function Navbar() {
@@ -106,6 +108,13 @@ export function Navbar() {
                         <UserIcon className="h-4 w-4 text-muted" /> Мой профиль
                       </Link>
                     )}
+                    <Link
+                      href="/lists"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm transition hover:bg-surface-2"
+                    >
+                      <Library className="h-4 w-4 text-muted" /> Мои списки
+                    </Link>
                     <Link
                       href="/settings"
                       onClick={() => setMenuOpen(false)}

@@ -145,6 +145,61 @@ export async function getGame(id: number): Promise<GameDetail | null> {
   }
 }
 
+// Названия жанров RAWG → их слаги (для фильтра /games?genres=).
+const GENRE_SLUGS: Record<string, string> = {
+  rpg: "role-playing-games-rpg",
+  "massively multiplayer": "massively-multiplayer",
+  "board games": "board-games",
+};
+function genreSlug(name: string): string {
+  const n = name.toLowerCase();
+  return GENRE_SLUGS[n] ?? n.replace(/\s+/g, "-");
+}
+
+/** Похожие игры: пробуем /suggested (премиум), фолбэк — по жанру, затем — свежие. */
+export async function getSimilarGames(
+  id: number,
+  genres: string[] = []
+): Promise<Game[]> {
+  if (!hasRawgKey) {
+    return FALLBACK_GAMES.filter((g) => g.id !== id).slice(0, 8);
+  }
+
+  const dedupe = (list: RawgGame[]) =>
+    list.filter((g) => g.id !== id).map(normalize).slice(0, 8);
+
+  // 1) suggested (может быть недоступен на бесплатном тарифе)
+  try {
+    const data = await rawgFetch(`/games/${id}/suggested`, { page_size: "8" });
+    const results = (data.results as RawgGame[]) ?? [];
+    if (results.length > 0) return dedupe(results);
+  } catch {
+    /* дальше фолбэк */
+  }
+
+  // 2) по жанру
+  if (genres[0]) {
+    try {
+      const data = await rawgFetch("/games", {
+        genres: genreSlug(genres[0]),
+        ordering: "-added",
+        page_size: "12",
+      });
+      const results = dedupe((data.results as RawgGame[]) ?? []);
+      if (results.length > 0) return results;
+    } catch {
+      /* дальше фолбэк */
+    }
+  }
+
+  // 3) просто популярное свежее
+  try {
+    return (await getPopularGames(9)).filter((g) => g.id !== id).slice(0, 8);
+  } catch {
+    return [];
+  }
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<\/p>/g, "\n\n")

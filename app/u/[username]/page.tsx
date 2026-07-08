@@ -4,6 +4,8 @@ import { Library, Trophy, Clock, Star } from "lucide-react";
 import { getProfileByUsername, getEntriesByUser } from "@/lib/profiles-server";
 import { Avatar } from "@/components/avatar";
 import { GameGrid } from "@/components/game-grid";
+import { Badges } from "@/components/badges";
+import { StatsCharts } from "@/components/charts";
 
 export const revalidate = 0;
 
@@ -116,6 +118,22 @@ export default async function ProfilePage({
           </div>
         ))}
       </div>
+
+      {/* Ачивки */}
+      {entries.length > 0 && (
+        <Badges
+          stats={{
+            total: entries.length,
+            completed,
+            hours,
+            rated: rated.length,
+            favorites: entries.filter((e) => e.favorite).length,
+          }}
+        />
+      )}
+
+      {/* Статистика */}
+      <StatsCharts entries={entries} />
 
       {/* Библиотека */}
       <div>

@@ -16,6 +16,9 @@ import {
 import { useUser } from "@/lib/use-user";
 import { fetchEntries, type GameEntry, type GameStatus } from "@/lib/entries";
 import { GameGrid, GameGridSkeleton } from "@/components/game-grid";
+import { Badges } from "@/components/badges";
+import { StatsCharts } from "@/components/charts";
+import { BacklogRandomizer } from "@/components/backlog-randomizer";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { useCountUp } from "@/lib/use-count-up";
 
@@ -150,9 +153,19 @@ export default function LibraryPage() {
           </h1>
           <p className="mt-1 text-muted">Все твои игры и оценки в одном месте</p>
         </div>
-        <Link href="/import" className="btn-outline">
-          <Download className="h-4 w-4" /> Импорт из Steam
-        </Link>
+        <div className="flex gap-2">
+          <BacklogRandomizer
+            entries={entries.map((e) => ({
+              rawg_id: e.rawg_id,
+              name: e.name,
+              cover_url: e.cover_url,
+              status: e.status,
+            }))}
+          />
+          <Link href="/import" className="btn-outline">
+            <Download className="h-4 w-4" /> Импорт из Steam
+          </Link>
+        </div>
       </div>
 
       {/* Статистика */}
@@ -181,6 +194,20 @@ export default function LibraryPage() {
         </div>
       ) : (
         <>
+          {/* Ачивки */}
+          <Badges
+            stats={{
+              total: entries.length,
+              completed: stats.completed,
+              hours: stats.hours,
+              rated: entries.filter((e) => e.overall && e.overall > 0).length,
+              favorites: entries.filter((e) => e.favorite).length,
+            }}
+          />
+
+          {/* Статистика-графики */}
+          <StatsCharts entries={entries} />
+
           {/* Поиск + сортировка */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">

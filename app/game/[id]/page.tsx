@@ -2,8 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Calendar, Star, Monitor, Building2 } from "lucide-react";
-import { getGame } from "@/lib/rawg";
+import { getGame, getSimilarGames } from "@/lib/rawg";
 import { GameActions } from "@/components/game-actions";
+import { AddToList } from "@/components/add-to-list";
+import { CommunityRating } from "@/components/community-rating";
+import { GameGrid } from "@/components/game-grid";
 
 export const revalidate = 3600;
 
@@ -18,6 +21,7 @@ export default async function GamePage({
   const game = await getGame(id);
   if (!game) notFound();
 
+  const similar = await getSimilarGames(id, game.genres);
   const year = game.released ? game.released.slice(0, 4) : null;
 
   return (
@@ -137,7 +141,7 @@ export default async function GamePage({
         </div>
 
         {/* Правая колонка: оценка */}
-        <div className="lg:sticky lg:top-24 lg:self-start">
+        <div className="space-y-3 lg:sticky lg:top-24 lg:self-start">
           <GameActions
             game={{
               id: game.id,
@@ -148,8 +152,26 @@ export default async function GamePage({
               platforms: game.platforms,
             }}
           />
+          <AddToList
+            game={{
+              id: game.id,
+              name: game.name,
+              cover_url: game.backgroundImage,
+              released: game.released,
+              genres: game.genres,
+            }}
+          />
+          <CommunityRating rawgId={game.id} />
         </div>
       </div>
+
+      {/* Похожие игры */}
+      {similar.length > 0 && (
+        <section>
+          <h2 className="mb-4 font-display text-xl font-bold">Похожие игры</h2>
+          <GameGrid games={similar} />
+        </section>
+      )}
     </div>
   );
 }
