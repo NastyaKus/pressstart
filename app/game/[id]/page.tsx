@@ -6,6 +6,7 @@ import { getGame, getSimilarGames } from "@/lib/rawg";
 import { GameActions } from "@/components/game-actions";
 import { AddToList } from "@/components/add-to-list";
 import { CommunityRating } from "@/components/community-rating";
+import { GameComments } from "@/components/game-comments";
 import { GameGrid } from "@/components/game-grid";
 
 export const revalidate = 3600;
@@ -164,6 +165,9 @@ export default async function GamePage({
           <CommunityRating rawgId={game.id} />
         </div>
       </div>
+
+      {/* Отзывы */}
+      <GameComments rawgId={game.id} />
 
       {/* Похожие игры */}
       {similar.length > 0 && (
