@@ -1,0 +1,74 @@
+import Image from "next/image";
+import Link from "next/link";
+import { ImageOff } from "lucide-react";
+import type { Game } from "@/lib/rawg";
+import { ScoreBadge } from "./score-badge";
+
+type Props = {
+  game: Pick<
+    Game,
+    "id" | "name" | "released" | "backgroundImage" | "genres"
+  >;
+  score?: number | null;
+  status?: string | null;
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  completed: "Пройдено",
+  playing: "Прохожу",
+  backlog: "В планах",
+  dropped: "Брошено",
+};
+
+export function GameCard({ game, score, status }: Props) {
+  const year = game.released ? game.released.slice(0, 4) : null;
+
+  return (
+    <Link
+      href={`/game/${game.id}`}
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-[0_16px_40px_-16px_rgb(var(--accent)/0.45)]"
+    >
+      <div className="relative aspect-[16/9] w-full overflow-hidden bg-surface-2">
+        {game.backgroundImage ? (
+          <Image
+            src={game.backgroundImage}
+            alt={game.name}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="grid h-full w-full place-items-center text-muted">
+            <ImageOff className="h-8 w-8" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+        {typeof score === "number" && (
+          <div className="absolute right-2 top-2">
+            <ScoreBadge score={score} size="sm" />
+          </div>
+        )}
+        {status && STATUS_LABELS[status] && (
+          <span className="absolute left-2 top-2 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur">
+            {STATUS_LABELS[status]}
+          </span>
+        )}
+      </div>
+
+      <div className="flex flex-1 flex-col gap-2 p-3.5">
+        <h3 className="line-clamp-2 font-display text-[15px] font-semibold leading-tight transition group-hover:text-accent">
+          {game.name}
+        </h3>
+        <div className="mt-auto flex flex-wrap items-center gap-1.5">
+          {year && <span className="chip">{year}</span>}
+          {game.genres.slice(0, 2).map((g) => (
+            <span key={g} className="chip">
+              {g}
+            </span>
+          ))}
+        </div>
+      </div>
+    </Link>
+  );
+}

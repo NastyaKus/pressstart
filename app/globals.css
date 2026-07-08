@@ -1,0 +1,138 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", var(--font-sans);
+
+  /* light (default) */
+  --bg: 249 249 251;
+  --surface: 255 255 255;
+  --surface-2: 243 243 246;
+  --border: 226 226 232;
+  --fg: 17 17 22;
+  --muted: 108 108 120;
+  --accent: 99 91 235;
+  --accent-fg: 255 255 255;
+}
+
+.dark {
+  --bg: 9 9 12;
+  --surface: 20 20 25;
+  --surface-2: 28 28 35;
+  --border: 40 40 50;
+  --fg: 240 240 246;
+  --muted: 148 148 162;
+  --accent: 139 124 248;
+  --accent-fg: 255 255 255;
+}
+
+* {
+  border-color: rgb(var(--border));
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: rgb(var(--bg));
+  color: rgb(var(--fg));
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* thin, unobtrusive scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--border));
+  border-radius: 999px;
+  border: 3px solid rgb(var(--bg));
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--muted));
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium
+           transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none select-none;
+  }
+  .btn-primary {
+    @apply btn bg-accent text-accent-fg hover:opacity-90 active:scale-[0.98]
+           shadow-[0_6px_20px_-6px_rgb(var(--accent)/0.6)];
+  }
+  .btn-ghost {
+    @apply btn bg-surface-2 text-fg hover:bg-border/60 active:scale-[0.98];
+  }
+  .btn-outline {
+    @apply btn border border-border bg-transparent text-fg hover:bg-surface-2 active:scale-[0.98];
+  }
+  .card {
+    @apply rounded-2xl border border-border bg-surface;
+  }
+  .input {
+    @apply w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-fg
+           placeholder:text-muted outline-none transition
+           focus:border-accent focus:ring-2 focus:ring-accent/25;
+  }
+  .chip {
+    @apply inline-flex items-center rounded-full border border-border bg-surface-2 px-2.5 py-1
+           text-xs font-medium text-muted;
+  }
+}
+
+.range-input {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: rgb(var(--surface-2));
+  cursor: pointer;
+}
+.range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: rgb(var(--surface));
+  border: 3px solid currentColor;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
+}
+.range-input::-moz-range-thumb {
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: rgb(var(--surface));
+  border: 3px solid currentColor;
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: rgb(var(--surface-2));
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(var(--border) / 0.6),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
