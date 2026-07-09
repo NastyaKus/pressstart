@@ -19,16 +19,21 @@ language sql
 stable
 security invoker
 as $$
-  select
-    rawg_id,
-    (array_agg(name order by added_at desc))[1] as name,
-    (array_agg(cover_url order by added_at desc))[1] as cover_url,
-    (array_agg(released order by added_at desc))[1] as released,
-    (array_agg(genres order by added_at desc))[1] as genres,
-    count(*) as adds
-  from public.game_entries
-  where added_at > now() - make_interval(days => p_days)
-  group by rawg_id
-  order by adds desc, max(added_at) desc
-  limit p_limit;
+  select c.rawg_id, g.name, g.cover_url, g.released, g.genres, c.adds
+  from (
+    select e.rawg_id, count(*) as adds, max(e.added_at) as last_added
+    from public.game_entries e
+    where e.added_at > now() - make_interval(days => p_days)
+    group by e.rawg_id
+    order by adds desc, last_added desc
+    limit p_limit
+  ) c
+  join lateral (
+    select e.name, e.cover_url, e.released, e.genres
+    from public.game_entries e
+    where e.rawg_id = c.rawg_id
+    order by e.added_at desc
+    limit 1
+  ) g on true
+  order by c.adds desc, c.last_added desc;
 $$;
