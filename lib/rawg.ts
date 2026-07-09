@@ -165,6 +165,10 @@ export async function getGames(filters: GameFilters): Promise<GamesPage> {
   }
   if (genre) params.genres = genre;
   if (platform) params.parent_platforms = platform;
+  // «Новинки» (-released) — только уже вышедшие игры (не будущие релизы).
+  if (ordering === "-released") {
+    params.dates = `1990-01-01,${isoDate(0)}`;
+  }
 
   try {
     const data = await rawgFetch("/games", params);
