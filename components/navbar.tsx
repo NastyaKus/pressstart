@@ -12,6 +12,7 @@ import {
   Settings,
   UserIcon,
   Trophy,
+  Fingerprint,
 } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import { Logo } from "./logo";
@@ -108,6 +109,13 @@ export function Navbar() {
                         <UserIcon className="h-4 w-4 text-muted" /> Мой профиль
                       </Link>
                     )}
+                    <Link
+                      href="/taste"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm transition hover:bg-surface-2"
+                    >
+                      <Fingerprint className="h-4 w-4 text-muted" /> Игровой вкус
+                    </Link>
                     <Link
                       href="/lists"
                       onClick={() => setMenuOpen(false)}

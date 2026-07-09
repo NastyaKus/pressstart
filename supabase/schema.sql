@@ -11,6 +11,7 @@ create table if not exists public.profiles (
   bio text,
   avatar_url text,
   banner_url text,
+  is_public boolean not null default true,
   created_at timestamptz not null default now()
 );
 
@@ -19,9 +20,10 @@ create unique index if not exists profiles_username_lower_key
 
 alter table public.profiles enable row level security;
 
-drop policy if exists "Профили видны всем" on public.profiles;
-create policy "Профили видны всем"
-  on public.profiles for select using (true);
+drop policy if exists "Профили: публичные или свой" on public.profiles;
+create policy "Профили: публичные или свой"
+  on public.profiles for select
+  using (is_public or auth.uid() = id);
 
 drop policy if exists "Правит только владелец профиля" on public.profiles;
 create policy "Правит только владелец профиля"
@@ -67,10 +69,17 @@ create table if not exists public.game_entries (
 
 alter table public.game_entries enable row level security;
 
--- Библиотеки публично читаемы (для чужих профилей); запись — owner-only ниже.
-drop policy if exists "Публичное чтение записей" on public.game_entries;
-create policy "Публичное чтение записей"
-  on public.game_entries for select using (true);
+-- Записи: видны владельцу всегда, остальным — только если профиль публичный.
+drop policy if exists "Записи: свои или из публичного профиля" on public.game_entries;
+create policy "Записи: свои или из публичного профиля"
+  on public.game_entries for select
+  using (
+    auth.uid() = user_id
+    or exists (
+      select 1 from public.profiles p
+      where p.id = game_entries.user_id and p.is_public
+    )
+  );
 
 drop policy if exists "Свои записи: добавление" on public.game_entries;
 create policy "Свои записи: добавление"

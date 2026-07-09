@@ -3,7 +3,16 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2, LogIn, Camera, Check, AtSign, ImagePlus } from "lucide-react";
+import {
+  Loader2,
+  LogIn,
+  Camera,
+  Check,
+  AtSign,
+  ImagePlus,
+  Globe,
+  Lock,
+} from "lucide-react";
 import { useUser } from "@/lib/use-user";
 import { Avatar } from "@/components/avatar";
 import {
@@ -30,6 +39,7 @@ export default function SettingsPage() {
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
+  const [isPublic, setIsPublic] = useState(true);
 
   const [uploading, setUploading] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
@@ -54,6 +64,7 @@ export default function SettingsPage() {
           setBio(p.bio ?? "");
           setAvatarUrl(p.avatar_url);
           setBannerUrl(p.banner_url);
+          setIsPublic(p.is_public);
         }
       })
       .catch(() => {})
@@ -141,6 +152,7 @@ export default function SettingsPage() {
         bio: bio.trim(),
         avatar_url: avatarUrl ?? undefined,
         banner_url: bannerUrl ?? undefined,
+        is_public: isPublic,
       });
       // Локально фиксируем новые значения (чтобы ссылки вели на новый @хэндл).
       setProfile((p) =>
@@ -328,6 +340,42 @@ export default function SettingsPage() {
             className="input resize-none"
           />
         </div>
+
+        {/* Приватность */}
+        <button
+          type="button"
+          onClick={() => setIsPublic((v) => !v)}
+          className="flex w-full items-center justify-between rounded-xl border border-border bg-surface/60 p-4 text-left transition hover:border-accent/50"
+        >
+          <span className="flex items-center gap-3">
+            {isPublic ? (
+              <Globe className="h-5 w-5 text-accent" />
+            ) : (
+              <Lock className="h-5 w-5 text-muted" />
+            )}
+            <span>
+              <span className="block text-sm font-medium">
+                {isPublic ? "Публичный профиль" : "Приватный профиль"}
+              </span>
+              <span className="block text-xs text-muted">
+                {isPublic
+                  ? "Профиль и библиотека видны всем, попадают в поиск и топ"
+                  : "Профиль скрыт от других — виден только тебе"}
+              </span>
+            </span>
+          </span>
+          <span
+            className={`relative h-6 w-11 shrink-0 rounded-full transition ${
+              isPublic ? "bg-accent" : "bg-surface-2"
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${
+                isPublic ? "left-[22px]" : "left-0.5"
+              }`}
+            />
+          </span>
+        </button>
 
         {error && (
           <p className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-500">

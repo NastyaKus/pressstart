@@ -129,22 +129,34 @@ export type GameFilters = {
   genre?: string;
   platform?: string;
   ordering?: string;
+  page?: number;
   pageSize?: number;
 };
 
-/** Каталог с фильтрами (поиск + жанр + платформа + сортировка). */
-export async function getGames(filters: GameFilters): Promise<Game[]> {
-  const { q = "", genre = "", platform = "", ordering = "-added", pageSize = 24 } = filters;
+export type GamesPage = { games: Game[]; hasMore: boolean };
+
+/** Каталог с фильтрами и пагинацией (поиск + жанр + платформа + сортировка). */
+export async function getGames(filters: GameFilters): Promise<GamesPage> {
+  const {
+    q = "",
+    genre = "",
+    platform = "",
+    ordering = "-added",
+    page = 1,
+    pageSize = 24,
+  } = filters;
 
   if (!hasRawgKey) {
     const lower = q.trim().toLowerCase();
-    return FALLBACK_GAMES.filter(
+    const games = FALLBACK_GAMES.filter(
       (g) => !lower || g.name.toLowerCase().includes(lower)
     );
+    return { games, hasMore: false };
   }
 
   const params: Record<string, string> = {
     page_size: String(pageSize),
+    page: String(page),
     ordering,
   };
   if (q.trim()) {
@@ -156,9 +168,12 @@ export async function getGames(filters: GameFilters): Promise<Game[]> {
 
   try {
     const data = await rawgFetch("/games", params);
-    return (data.results as RawgGame[]).map(normalize);
+    return {
+      games: (data.results as RawgGame[]).map(normalize),
+      hasMore: Boolean(data.next),
+    };
   } catch {
-    return [];
+    return { games: [], hasMore: false };
   }
 }
 

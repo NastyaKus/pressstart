@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, SlidersHorizontal, X, Loader2, Plus } from "lucide-react";
 import type { Game } from "@/lib/rawg";
 import { GENRES, PLATFORMS, ORDERINGS } from "@/lib/rawg";
 import { GameGrid, GameGridSkeleton } from "@/components/game-grid";
@@ -13,27 +13,64 @@ export default function DiscoverPage() {
   const [ordering, setOrdering] = useState("-added");
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+
+  const buildQuery = useCallback(
+    (q: string, g: string, p: string, o: string, pg: number) => {
+      const params = new URLSearchParams();
+      if (q) params.set("q", q);
+      if (g) params.set("genre", g);
+      if (p) params.set("platform", p);
+      if (o) params.set("ordering", o);
+      if (pg > 1) params.set("page", String(pg));
+      return params.toString();
+    },
+    []
+  );
 
   const load = useCallback(
     async (q: string, g: string, p: string, o: string) => {
       setLoading(true);
+      setPage(1);
       try {
-        const params = new URLSearchParams();
-        if (q) params.set("q", q);
-        if (g) params.set("genre", g);
-        if (p) params.set("platform", p);
-        if (o) params.set("ordering", o);
-        const res = await fetch(`/api/games/search?${params.toString()}`);
+        const res = await fetch(`/api/games/search?${buildQuery(q, g, p, o, 1)}`);
         const data = await res.json();
         setGames(data.games ?? []);
+        setHasMore(Boolean(data.hasMore));
       } catch {
         setGames([]);
+        setHasMore(false);
       } finally {
         setLoading(false);
       }
     },
-    []
+    [buildQuery]
   );
+
+  async function loadMore() {
+    const next = page + 1;
+    setLoadingMore(true);
+    try {
+      const res = await fetch(
+        `/api/games/search?${buildQuery(query, genre, platform, ordering, next)}`
+      );
+      const data = await res.json();
+      const more = (data.games ?? []) as Game[];
+      // Отсекаем возможные дубли по id.
+      setGames((prev) => {
+        const seen = new Set(prev.map((x) => x.id));
+        return [...prev, ...more.filter((x) => !seen.has(x.id))];
+      });
+      setHasMore(Boolean(data.hasMore));
+      setPage(next);
+    } catch {
+      setHasMore(false);
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   useEffect(() => {
     const t = setTimeout(
@@ -109,7 +146,25 @@ export default function DiscoverPage() {
       {loading ? (
         <GameGridSkeleton count={12} />
       ) : games.length > 0 ? (
-        <GameGrid games={games} />
+        <>
+          <GameGrid games={games} />
+          {hasMore && (
+            <div className="flex justify-center pt-4">
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="btn-outline"
+              >
+                {loadingMore ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Plus className="h-4 w-4" />
+                )}
+                Загрузить ещё
+              </button>
+            </div>
+          )}
+        </>
       ) : (
         <div className="card p-12 text-center">
           <p className="text-muted">Ничего не нашлось. Попробуй изменить фильтры.</p>

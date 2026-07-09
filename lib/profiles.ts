@@ -9,11 +9,12 @@ export type Profile = {
   bio: string | null;
   avatar_url: string | null;
   banner_url: string | null;
+  is_public: boolean;
   created_at: string;
 };
 
 const PROFILE_COLS =
-  "id, username, display_name, bio, avatar_url, banner_url, created_at";
+  "id, username, display_name, bio, avatar_url, banner_url, is_public, created_at";
 
 /** Профиль по @юзернейму (регистронезависимо). */
 export async function fetchProfileByUsername(
@@ -67,6 +68,7 @@ export type ProfileUpdate = {
   bio?: string;
   avatar_url?: string;
   banner_url?: string;
+  is_public?: boolean;
 };
 
 /** Обновить свой профиль. */
