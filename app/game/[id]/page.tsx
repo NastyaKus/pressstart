@@ -11,6 +11,23 @@ import { GameGrid } from "@/components/game-grid";
 
 export const revalidate = 3600;
 
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const game = await getGame(Number(params.id)).catch(() => null);
+  if (!game) return { title: "Игра — pressstart" };
+  const desc = game.description
+    ? game.description.slice(0, 160)
+    : `${game.genres.join(", ")} · оцени и добавь в библиотеку на pressstart`;
+  return {
+    title: `${game.name} — pressstart`,
+    description: desc,
+    openGraph: { title: game.name, description: desc },
+  };
+}
+
 export default async function GamePage({
   params,
 }: {

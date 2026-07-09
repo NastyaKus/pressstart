@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Library, Trophy, Clock, Star } from "lucide-react";
+import { Library, Trophy, Clock, Star, Swords } from "lucide-react";
 import { getProfileByUsername, getEntriesByUser } from "@/lib/profiles-server";
 import { Avatar } from "@/components/avatar";
 import { GameGrid } from "@/components/game-grid";
@@ -8,6 +8,23 @@ import { Badges } from "@/components/badges";
 import { StatsCharts } from "@/components/charts";
 
 export const revalidate = 0;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { username: string };
+}) {
+  const profile = await getProfileByUsername(params.username);
+  if (!profile) return { title: "Профиль — pressstart" };
+  const name = profile.display_name || profile.username;
+  const desc =
+    profile.bio || `Игровая библиотека и оценки ${name} на pressstart`;
+  return {
+    title: `${name} (@${profile.username}) — pressstart`,
+    description: desc,
+    openGraph: { title: `${name} · @${profile.username}`, description: desc },
+  };
+}
 
 export default async function ProfilePage({
   params,
@@ -103,6 +120,12 @@ export default async function ProfilePage({
             )}
             <p className="mt-1 text-xs text-muted">на pressstart с {joined}</p>
           </div>
+          <Link
+            href={`/compare/${profile.username}`}
+            className="btn-outline shrink-0"
+          >
+            <Swords className="h-4 w-4" /> Сравнить
+          </Link>
         </div>
       </div>
 

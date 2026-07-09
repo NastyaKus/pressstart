@@ -57,6 +57,19 @@ export async function fetchEntries(): Promise<GameEntry[]> {
   return (data ?? []) as GameEntry[];
 }
 
+/** Публичные записи любого пользователя (для сравнения библиотек). */
+export async function fetchEntriesOf(userId: string): Promise<GameEntry[]> {
+  const supabase = createClient();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("game_entries")
+    .select("*")
+    .eq("user_id", userId)
+    .order("added_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as GameEntry[];
+}
+
 /** Запись по rawg_id для текущего пользователя (или null). */
 export async function fetchEntry(rawgId: number): Promise<GameEntry | null> {
   const supabase = createClient();

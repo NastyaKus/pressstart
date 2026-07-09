@@ -2,6 +2,8 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { getPopularGames, hasRawgKey } from "@/lib/rawg";
 import { GameGrid } from "@/components/game-grid";
+import { Trending } from "@/components/trending";
+import { Recommendations } from "@/components/recommendations";
 import { CRITERIA } from "@/lib/criteria";
 
 export const revalidate = 3600;
@@ -78,6 +80,12 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* Персональные рекомендации (залогиненным) */}
+      <Recommendations />
+
+      {/* Тренды недели */}
+      <Trending />
 
       {/* Популярные игры */}
       <section>

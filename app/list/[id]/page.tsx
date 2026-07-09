@@ -7,6 +7,23 @@ import { Avatar } from "@/components/avatar";
 
 export const revalidate = 0;
 
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const data = await getListWithItems(params.id);
+  if (!data) return { title: "Список — pressstart" };
+  const desc =
+    data.list.description ||
+    `Подборка из ${data.items.length} игр на pressstart`;
+  return {
+    title: `${data.list.title} — pressstart`,
+    description: desc,
+    openGraph: { title: data.list.title, description: desc },
+  };
+}
+
 export default async function ListPage({
   params,
 }: {
